@@ -34,7 +34,7 @@ function updateLibro(datos) {
 function deleteLibro(id) {
 
     // hacer llamado a base de datos con el filtro de tipo
-    const LibroCreado = deleteLibroMongo(id);
+    const LibroCreado = softDeleteLibroMongo(id);
 
     return LibroCreado;
 }

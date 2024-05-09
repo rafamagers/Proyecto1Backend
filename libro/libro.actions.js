@@ -37,15 +37,30 @@ async function updateLibroMongo(id, cambios) {
     return resultado
 }
 
-async function deleteLibroMongo(id) {
-    const resultado = await Libro.findByIdAndDelete(id);
-    
-    return resultado;
+async function softDeleteLibroMongo(id) {
+  try {
+    // Encuentra el libro por ID y marca isDeleted como true
+    const libroEliminado = await Libro.findByIdAndUpdate(
+      id, // ID del libro
+      { isDeleted: true }, // Campos a actualizar
+      { new: true } // Devuelve el documento actualizado
+    );
+
+    // Verifica si el libro fue encontrado
+    if (!libroEliminado) {
+      throw new Error('Libro no encontrado');
+    }
+
+    return libroEliminado; // Devuelve el libro marcado como eliminado
+  } catch (error) {
+    console.error('Error al realizar soft delete:', error); // Manejo de errores
+    throw error; // Vuelve a lanzar el error para que el llamador lo maneje
+  }
 }
 
 module.exports = {
     createLibroMongo,
     getLibroMongo,
     updateLibroMongo,
-    deleteLibroMongo
+    softDeleteLibroMongo
 };
