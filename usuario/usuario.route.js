@@ -1,45 +1,45 @@
 const express = require('express')
 const router = express.Router();
-const { readUsuarioConFiltros, createUsuario, updateUsuario, deleteUsuario } = require("./usuario.controller");
+const {  readUsuario, createUsuario, updateUsuario, deleteUsuario } = require("./usuario.controller");
 const { respondWithError } = require('../utils/functions');
+const {verificarTokenJWT} = require('../login/login.actions'); // Función para crear tokens
 
-async function GetUsuarios(req, res) {
+
+async function GetUsuariosId(req, res) {
     try {
-        // llamada a controlador con los filtros
-        const resultadosBusqueda = await readUsuarioConFiltros(req.query);
-
+        const resultadosBusqueda = await readUsuario(req.params.id);
         res.status(200).json({
-            ...resultadosBusqueda
+            resultadosBusqueda
         })
     } catch(e) {
-        res.status(500).json({msg: ""})
+        res.status(500).json({msg: "Usuario no encontrado"})
     }
 }
-
 async function PostUsuario(req, res) {
+    // Manejo de errores para crear el usuario
     try {
-        // llamada a controlador con los datos
-        await createUsuario(req.body);
-
-        res.status(200).json({
-            mensaje: "Exito. 👍"
-        })
-    } catch(e) {
-        respondWithError(res, e);
+      const usuarioCreado = await createUsuario(req.body);
+  
+      res.status(200).json({
+        mensaje: 'Usuario creado exitosamente. 👍',
+        usuario: usuarioCreado,
+      });
+    } catch (error) {
+      console.error('Error al crear el usuario:', error); // Manejo de errores
+      res.status(500).json({ error: error.message }); // Respuesta al cliente
     }
-}
-
-
+  }
+  
 async function PatchUsuarios(req, res) {
     try {
         // llamada a controlador con los datos
-        updateUsuario(req.body);
+        await updateUsuario(req.body,req.userId);
 
         res.status(200).json({
-            mensaje: "Exito. 👍"
+            mensaje: "Usuario. 👍"
         })
     } catch(e) {
-        respondWithError(res, e);
+        res.status(500).json({ error: e.message });
     }
 }
 
@@ -47,20 +47,20 @@ async function PatchUsuarios(req, res) {
 async function DeleteUsuarios(req, res) {
     try {
         // llamada a controlador con los datos
-        deleteUsuario(req.params.id);
-
+        await deleteUsuario(req.params.id, req.userId);
         res.status(200).json({
             mensaje: "Exito. 👍"
         })
     } catch(e) {
-        respondWithError(res, e);
+        res.status(500).json({ error: e.message }); // Devuelve respuesta al cliente
     }
 }
 
-router.get("/", GetUsuarios);
+
+router.get("/:id", GetUsuariosId);
 router.post("/", PostUsuario);
-router.patch("/", PatchUsuarios);
-router.delete("/:id", DeleteUsuarios);
+router.patch("/", verificarTokenJWT, PatchUsuarios);
+router.delete("/:id",verificarTokenJWT, DeleteUsuarios);
 
 
 module.exports = router;

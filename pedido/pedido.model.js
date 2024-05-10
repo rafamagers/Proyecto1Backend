@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Definición del esquema para pedidos
 const schemaPedido = new mongoose.Schema({
-  cliente: {
+  idComprador: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Usuario', // Referencia al modelo Usuario
     required: true,

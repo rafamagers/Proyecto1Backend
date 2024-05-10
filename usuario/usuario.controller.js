@@ -1,19 +1,13 @@
 const { throwCustomError } = require("../utils/functions");
-const { createUsuarioMongo, getUsuarioMongo, updateUsuarioMongo, deleteUsuarioMongo } = require("./usuario.actions");
+const { createUsuarioMongo, getUsuarioMongo,getUsuariosMongo, updateUsuarioMongo, softDeleteUsuarioMongo} = require("./usuario.actions");
 
-async function readUsuarioConFiltros(query) {
-    const { tipo, relleno, precio, masa, cantidad, coccion } = query;
 
-    // hacer llamado a base de datos con el filtro de tipo
-    const resultadosBusqueda = await getUsuarioMongo(query);
-
+async function readUsuario(id) {
+    const resultadosBusqueda = await getUsuarioMongo(id);
     return resultadosBusqueda;
 }
 
 async function createUsuario(datos) {
-    const { tipo, relleno, precio, masa, cantidad, coccion } = datos;
-
-    const UsuarioSimilar = await getUsuarioMongo({masa});
 
     // hacer llamado a base de datos con el filtro de tipo
     const UsuarioCreado = await createUsuarioMongo(datos);
@@ -22,25 +16,27 @@ async function createUsuario(datos) {
 }
 
 
-function updateUsuario(datos) {
+async function updateUsuario(datos, userId) {
     const { _id, ...cambios } = datos;
 
     // hacer llamado a base de datos con el filtro de tipo
-    const UsuarioCreado = updateUsuarioMongo(_id, cambios);
+    const UsuarioCreado = await updateUsuarioMongo(_id, cambios, userId);
 
     return UsuarioCreado;
 }
-
-function deleteUsuario(id) {
-
-    // hacer llamado a base de datos con el filtro de tipo
-    const UsuarioCreado = deleteUsuarioMongo(id);
-
-    return UsuarioCreado;
-}
-
+async function deleteUsuario(id, userId) {
+    try {
+      // Usa `await` para asegurarte de que el error se propague adecuadamente
+      const usuarioEliminado = await softDeleteUsuarioMongo(id, userId); 
+      
+      return usuarioEliminado; // Devuelve el usuario eliminado
+    } catch (error) {
+      throw error; // Lanza el error para que el llamador lo maneje
+    }
+  }
 module.exports = {
-    readUsuarioConFiltros,
+    
+    readUsuario,
     createUsuario,
     updateUsuario,
     deleteUsuario

@@ -1,9 +1,8 @@
 const Libro = require("./libro.model")
 
-async function getLibroMongo(filtros) {
+async function getLibrosMongo(filtros) {
     const cantidadLibros = await Libro.countDocuments(filtros);
     const LibrosFiltrados = await Libro.find(filtros);
-
     return {
         resultados: LibrosFiltrados,
         // paginaMax: cantidadLibros / 20,
@@ -11,16 +10,23 @@ async function getLibroMongo(filtros) {
         cantidadLibros: cantidadLibros
     };
 }
+async function getLibroMongo(id) {
+  try{
+    const libro = await Libro.findById(id);
+    console.log(libro)
+    if (libro.isDeleted || !libro){
+      throw error;
+    }else{
+      return libro
 
+    }
+  }catch(error){
+    throw error
+  }
+}
 async function createLibroMongo(datos) {
     try {
-      // Verifica si el vendedor proporcionado existe
-      const vendedor = datos.vendedor; // Obtén el ID del vendedor de los datos
-  
-      const usuarioVendedor = await Usuario.findById(vendedor); // Busca al usuario por ID
-      if (!usuarioVendedor) {
-        throw new Error('Vendedor no encontrado'); // Lanza un error si el vendedor no existe
-      }
+
   
       // Si el vendedor es válido, crea el libro
       const libroCreado = await Libro.create(datos); // Crea el libro con los datos proporcionados
@@ -31,14 +37,35 @@ async function createLibroMongo(datos) {
       throw error; // Vuelve a lanzar el error para que el llamador lo maneje
     }
   }
-async function updateLibroMongo(id, cambios) {
-    const resultado = await Libro.findByIdAndUpdate(id, cambios);
+async function updateLibroMongo(id, cambios, userId) {
+  const libro =await Libro.findById(id)
+  if (!libro){
+    throw new Error('El libro no existe' );
 
+  }
+  const dueño = libro.vendedor.toHexString()
+  if(dueño !== userId){
+    throw new Error('Usted no es el dueño de este libro' );
+  }else{
+    const resultado = await Libro.findByIdAndUpdate(id, cambios);
     return resultado
+
+  }
 }
 
-async function softDeleteLibroMongo(id) {
+
+async function softDeleteLibroMongo(id, userId) {
   try {
+    const libro = await Libro.findById(id)
+    console.log(libro)
+    if(!libro){
+      throw new Error('Libro no encontrado' );
+    }else{
+      dueño = libro.vendedor.toHexString()
+      if(dueño!==userId){
+        throw new Error('Usted no es el dueño de este libro' );
+      }
+    }
     // Encuentra el libro por ID y marca isDeleted como true
     const libroEliminado = await Libro.findByIdAndUpdate(
       id, // ID del libro
@@ -46,19 +73,15 @@ async function softDeleteLibroMongo(id) {
       { new: true } // Devuelve el documento actualizado
     );
 
-    // Verifica si el libro fue encontrado
-    if (!libroEliminado) {
-      throw new Error('Libro no encontrado');
-    }
 
     return libroEliminado; // Devuelve el libro marcado como eliminado
   } catch (error) {
-    console.error('Error al realizar soft delete:', error); // Manejo de errores
-    throw error; // Vuelve a lanzar el error para que el llamador lo maneje
+    throw error
   }
 }
 
 module.exports = {
+  getLibrosMongo,
     createLibroMongo,
     getLibroMongo,
     updateLibroMongo,

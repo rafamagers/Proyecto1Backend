@@ -12,9 +12,11 @@ app.get("/", (req,res) => {
 const rutasLibro = require("./libro/libro.route")
 const rutasUsuario = require("./usuario/usuario.route")
 const rutasPedido = require("./pedido/pedido.route")
+const rutasLogin = require("./login/login.route")
 app.use('/libro', rutasLibro);
 app.use('/pedido', rutasPedido);
 app.use('/usuario', rutasUsuario);
+app.use('/login', rutasLogin);
 
 // aqui va la connection string VVVVV
 uri = 'mongodb+srv://ramontero:hDrShO2y2iGhce0g@backend.mu9yj0y.mongodb.net/?retryWrites=true&w=majority&appName=Backend';
