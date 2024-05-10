@@ -9,14 +9,26 @@ async function GetPedidos(req, res) {
     try {
         // llamada a controlador con los filtros
         const clavesDeseadas = ["estado"];
-
+     
         // Crear nuevo objeto solo con claves existentes
         const filtros = Object.fromEntries(
           Object.entries(req.query).filter(([clave]) => clavesDeseadas.includes(clave))
         );
+        console.log(filtros)
+        if (req.query.fechafin && req.query.fechainicio){
+            filtros = {
+                ...filtros,
+                createdAt: {
+                    $gte: req.query.fechainicio,
+                    $lte: req.query.fechafin,
+                  },
+            }
+        }
+        console.log(filtros)
+
         var resultadosBusqueda;
         if(req.query.isDeleted==="true"){
-            resultadosBusqueda = await readPedidoConFiltros({...filtros });
+            resultadosBusqueda = await readPedidoConFiltros({...filtros});
 
         }else{
             resultadosBusqueda = await readPedidoConFiltros({...filtros , isDeleted: false });
