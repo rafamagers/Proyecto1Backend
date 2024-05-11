@@ -5,8 +5,6 @@ async function getLibrosMongo(filtros) {
   const LibrosFiltrados = await Libro.find(filtros);
   return {
     resultados: LibrosFiltrados,
-    // paginaMax: cantidadLibros / 20,
-    // paginaActual: 1,
     cantidadLibros: cantidadLibros
   };
 }
