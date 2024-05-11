@@ -20,41 +20,16 @@ async function createUsuarioMongo(datos) {
         throw error; // Vuelve a lanzar el error para que el llamador lo maneje
     }
 }
-async function updateUsuarioMongo(id, cambios, userId) {
-    try {
-        console.log(cambios)
-        const usuario = await Usuario.findById(id)
-        if (!usuario) {
-            throw new Error("Usuario no existe")
-        }
-        if (id !== userId) {
-            throw new Error('Esta no es su cuenta, no puede modificarla');
-        }
+async function updateUsuarioMongo(id, cambios) {
+   
         const resultado = await Usuario.findByIdAndUpdate(id, cambios);
         return resultado
 
-
-    }
-
-
-    catch (e) {
-        throw e
-    }
 }
 
 
 async function softDeleteUsuarioMongo(id, userId) {
-    try {
-        const usuario = await Usuario.findById(id)
-        console.log(usuario)
-        if (!usuario) {
-            throw new Error('Usuario no encontrado');
-        } else {
-            dueño = usuario._id.toHexString()
-            if (dueño !== userId) {
-                throw new Error('Usted no es el dueño de esta cuenta');
-            }
-        }
+  
         // Encuentra el usuario por ID y marca isDeleted como true
         const usuarioEliminado = await Usuario.findByIdAndUpdate(
             id, // ID del usuario
@@ -64,9 +39,7 @@ async function softDeleteUsuarioMongo(id, userId) {
 
 
         return usuarioEliminado; // Devuelve el usuario marcado como eliminado
-    } catch (error) {
-        throw error
-    }
+   
 }
 
 module.exports = {

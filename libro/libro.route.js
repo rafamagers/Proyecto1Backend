@@ -65,7 +65,7 @@ async function DeleteLibros(req, res) {
         // llamada a controlador con los datos
         await deleteLibro(req.params.id, req.userId);
         res.status(200).json({
-            mensaje: "Exito. 👍"
+            mensaje: "Libro eliminado. 👍"
         })
     } catch(e) {
         res.status(500).json({ error: e.message }); // Devuelve respuesta al cliente

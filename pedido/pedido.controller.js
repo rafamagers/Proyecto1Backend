@@ -1,9 +1,35 @@
 const { throwCustomError } = require("../utils/functions");
+const { getLibroMongo, getLibrosMongo} = require("../libro/libro.actions");
+const Libro = require("../libro/libro.model");
 const { createPedidoMongo, getPedidoMongo,getPedidosMongo, updatePedidoMongo, softDeletePedidoMongo} = require("./pedido.actions");
+const Pedido = require("./pedido.model")
 
-async function readPedidoConFiltros(query) {
-    const resultadosBusqueda = await getPedidosMongo(query);
-    return resultadosBusqueda;
+async function readPedidoConFiltros(query, userId) {
+  const { estado, fechainicio, fechafin, todo,...resto} = query;
+
+  if (Object.keys(resto).length>0){
+   throw new Error ("No puedes filtrar por eso");
+  }
+  const { todo: todito, fechainicio: fechitai, fechafin:fechitaf, ...filtros} = query;
+  if (fechafin && fechainicio){
+    filtros.createdAt = {
+      
+            $gte: fechainicio,
+            $lte: fechafin,
+          
+    }
+  }
+   var resultadosBusqueda;
+   console.log(filtros)
+   console.log(todo)
+   if(todo==="true"){
+       resultadosBusqueda = await getPedidosMongo(filtros );
+
+   }else{
+      console.log("here")
+       resultadosBusqueda = await getPedidosMongo({...filtros, isDeleted: false });
+   }
+   return resultadosBusqueda;
 }
 async function readPedido(id) {
     const resultadosBusqueda = await getPedidoMongo(id);
@@ -11,7 +37,17 @@ async function readPedido(id) {
 }
 
 async function createPedido(datos) {
- 
+     // Manejo de errores para verificar libros
+    
+      for (const idlibro of datos.libros) {
+        // Verifica cada libro para asegurar que existe
+        const libro = await getLibroMongo(idlibro);
+  
+        if (!libro) {
+          throw new Error('Libro no encontrado: ' + idlibro); // Error si el libro no existe
+        }
+      }
+  
     const primerlibro = await Libro.findById(datos.libros[0])
     console.log(primerlibro.vendedor)
     const dueñolibros = primerlibro.vendedor.toHexString()
@@ -21,7 +57,7 @@ async function createPedido(datos) {
         console.log("vende:")
         console.log(libro.vendedor)
         if (dueñolibros!==libro.vendedor.toHexString()) {
-          throw new Error('Libros de vendedores diferentes: '); // Error si el libro no existe
+          throw new Error('Libros de vendedores diferentes'); // Error si el libro no existe
         }
       }
   // Si el vendedor es válido, crea el pedido
@@ -33,11 +69,39 @@ async function createPedido(datos) {
 
 async function updatePedido(datos, userId) {
     const { _id, ...cambios } = datos;
+    console.log(cambios)
+    const pedido = await Pedido.findById(_id)
+    if (!pedido) {
+      throw new Error("Pedido no existe")
+    }
+    //Caso para cancelar un pedido
+    if (cambios.estado === "cancelado") {
+      const dueño = pedido.idComprador.toHexString()
+      if (dueño !== userId) {
 
-    // hacer llamado a base de datos con el filtro de tipo
-    const PedidoCreado = await updatePedidoMongo(_id, cambios, userId);
+        throw new Error('Usted no es el comprador de este pedido, no puede actualizar');
+      } else {
+        const resultado = await updatePedidoMongo(_id, cambios);
+        return resultado
 
-    return PedidoCreado;
+      }
+    } else {
+      
+        const primerlibro = await Libro.findById(pedido.libros[0])
+        const dueñolibros = primerlibro.vendedor.toHexString()
+        console.log(dueñolibros)
+        console.log(userId)
+        if (dueñolibros !== userId) {
+          throw new Error('Usted no es el dueño de los libros por lo que no puede completar el pedido');
+        }
+        else {
+          const resultado = await updatePedidoMongo(_id, cambios);
+          return resultado
+
+        }
+      
+    }
+    
 }
 async function deletePedido(id, userId) {
     try {

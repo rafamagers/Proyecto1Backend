@@ -7,12 +7,12 @@ const {verificarTokenJWT} = require('../login/login.actions'); // Función para 
 
 async function GetUsuariosId(req, res) {
     try {
-        const resultadosBusqueda = await readUsuario(req.params.id);
+        const resultadosBusqueda = await readUsuario(req.params.id,req.userId);
         res.status(200).json({
             resultadosBusqueda
         })
     } catch(e) {
-        res.status(500).json({msg: "Usuario no encontrado"})
+        res.status(500).json({msg: e.message})
     }
 }
 async function PostUsuario(req, res) {
@@ -36,7 +36,7 @@ async function PatchUsuarios(req, res) {
         await updateUsuario(req.body,req.userId);
 
         res.status(200).json({
-            mensaje: "Usuario. 👍"
+            mensaje: "Usuario modificado. 👍"
         })
     } catch(e) {
         res.status(500).json({ error: e.message });
@@ -49,7 +49,7 @@ async function DeleteUsuarios(req, res) {
         // llamada a controlador con los datos
         await deleteUsuario(req.params.id, req.userId);
         res.status(200).json({
-            mensaje: "Exito. 👍"
+            mensaje: "Usuario eliminado. 👍"
         })
     } catch(e) {
         res.status(500).json({ error: e.message }); // Devuelve respuesta al cliente
@@ -57,7 +57,7 @@ async function DeleteUsuarios(req, res) {
 }
 
 
-router.get("/:id", GetUsuariosId);
+router.get("/:id", verificarTokenJWT, GetUsuariosId);
 router.post("/", PostUsuario);
 router.patch("/", verificarTokenJWT, PatchUsuarios);
 router.delete("/:id",verificarTokenJWT, DeleteUsuarios);

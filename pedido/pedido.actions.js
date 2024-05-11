@@ -4,6 +4,7 @@ const Pedido = require("./pedido.model")
 async function getPedidosMongo(filtros) {
   const cantidadPedidos = await Pedido.countDocuments(filtros);
   const PedidosFiltrados = await Pedido.find(filtros);
+  console.log(PedidosFiltrados)
   return {
     resultados: PedidosFiltrados,
     // paginaMax: cantidadPedidos / 20,
@@ -26,52 +27,17 @@ async function createPedidoMongo(datos) {
   return pedidoCreado; // Devuelve el pedido creado
 
 }
-async function updatePedidoMongo(id, cambios, userId) {
-  try {
-    console.log(cambios)
-    const pedido = await Pedido.findById(id)
-    if (!pedido) {
-      throw new Error("Pedido no existe")
-    }
-    //Caso para cancelar un pedido
-    if (cambios.estado === "cancelado") {
-      const dueño = pedido.idComprador.toHexString()
-      if (dueño !== userId) {
+async function updatePedidoMongo(id, cambios) {
 
-        throw new Error('Usted no es el comprador de este pedido, no puede actualizar');
-      } else {
-        const resultado = await Pedido.findByIdAndUpdate(id, cambios);
-        return resultado
-
-      }
-    } else {
-      if (cambios.estado === "completado") {
-        const primerlibro = await Libro.findById(pedido.libros[0])
-        const dueñolibros = primerlibro.vendedor
-        if (dueñolibros !== userId) {
-          throw new Error('Usted no es el dueño de los libros por lo que no puede completar el pedido');
-        }
-        else {
           const resultado = await Pedido.findByIdAndUpdate(id, cambios);
-          return resultado
-
-        }
-
-      } else {
-        throw new Error('Error');
-      }
-    }
-
-  }
-  catch (e) {
-    throw e
-  }
+          return resultado;
+         
 }
 
 
 async function softDeletePedidoMongo(id, userId) {
-  try {
-    const pedido = await Pedido.findById(id)
+ 
+    const pedido = await Pedido.findById(id);
     console.log(pedido)
     if (!pedido) {
       throw new Error('Pedido no encontrado');
@@ -90,9 +56,7 @@ async function softDeletePedidoMongo(id, userId) {
 
 
     return pedidoEliminado; // Devuelve el pedido marcado como eliminado
-  } catch (error) {
-    throw error
-  }
+  
 }
 
 module.exports = {
