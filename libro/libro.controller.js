@@ -2,7 +2,25 @@ const { throwCustomError } = require("../utils/functions");
 const { createLibroMongo, getLibroMongo,getLibrosMongo, updateLibroMongo, softDeleteLibroMongo} = require("./libro.actions");
 
 async function readLibroConFiltros(query) {
-    const resultadosBusqueda = await getLibrosMongo(query);
+  //const clavesDeseadas = ["genero", "fechaPublicacion", "editorial", "titulo", "autor"];
+  const { genero, fechaPublicacion, editorial, titulo, autor, todo, ...resto} = query;
+
+        // Crear nuevo objeto solo con claves existentes
+       // const filtros = Object.fromEntries(
+       //   Object.entries(query).filter(([clave]) => clavesDeseadas.includes(clave))
+       // );
+       if (Object.keys(resto).length>0){
+        throw new Error ("No puedes filtrar por eso");
+       }
+        var resultadosBusqueda;
+        console.log(todo)
+        if(todo==="true"){
+            resultadosBusqueda = await getLibrosMongo(query );
+
+        }else{
+            resultadosBusqueda = await getLibrosMongo({...query, isDeleted: false });
+        }
+        
     return resultadosBusqueda;
 }
 async function readLibro(id) {

@@ -11,12 +11,23 @@ async function readPedido(id) {
 }
 
 async function createPedido(datos) {
-    const { tipo, relleno, precio, masa, cantidad, coccion } = datos;
-
-    // hacer llamado a base de datos con el filtro de tipo
-    const PedidoCreado = await createPedidoMongo(datos);
-
-    return PedidoCreado;
+ 
+    const primerlibro = await Libro.findById(datos.libros[0])
+    console.log(primerlibro.vendedor)
+    const dueñolibros = primerlibro.vendedor.toHexString()
+    for (const lib of datos.libros) {
+        const libro = await Libro.findById(lib)
+        console.log(dueñolibros)
+        console.log("vende:")
+        console.log(libro.vendedor)
+        if (dueñolibros!==libro.vendedor.toHexString()) {
+          throw new Error('Libros de vendedores diferentes: '); // Error si el libro no existe
+        }
+      }
+  // Si el vendedor es válido, crea el pedido
+  const PedidoCreado = await createPedidoMongo(datos); // Crea el pedido con los datos proporcionados
+  return PedidoCreado; // Devuelve el pedido creado
+ 
 }
 
 

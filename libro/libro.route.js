@@ -6,26 +6,14 @@ const {verificarTokenJWT} = require('../login/login.actions'); // Función para 
 
 async function GetLibros(req, res) {
     try {
-        // llamada a controlador con los filtros
-        const clavesDeseadas = ["genero", "fechaPublicacion", "editorial", "titulo", "autor"];
-
-        // Crear nuevo objeto solo con claves existentes
-        const filtros = Object.fromEntries(
-          Object.entries(req.query).filter(([clave]) => clavesDeseadas.includes(clave))
-        );
-        var resultadosBusqueda;
-        console.log(req.query.isDeleted)
-        if(req.query.isDeleted==="true"){
-            resultadosBusqueda = await readLibroConFiltros({...filtros });
-
-        }else{
-            resultadosBusqueda = await readLibroConFiltros({...filtros , isDeleted: false });
-        }
+        
+        resultadosBusqueda = await readLibroConFiltros(req.query);
+        
         res.status(200).json({
             ...resultadosBusqueda
         })
     } catch(e) {
-        res.status(500).json({msg: ""})
+        res.status(500).json({msg: e.message})
     }
 }
 async function GetLibrosId(req, res) {
