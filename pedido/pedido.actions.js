@@ -29,34 +29,24 @@ async function createPedidoMongo(datos) {
 }
 async function updatePedidoMongo(id, cambios) {
 
-          const resultado = await Pedido.findByIdAndUpdate(id, cambios);
-          return resultado;
-         
+  const resultado = await Pedido.findByIdAndUpdate(id, cambios);
+  return resultado;
+
 }
 
 
 async function softDeletePedidoMongo(id, userId) {
- 
-    const pedido = await Pedido.findById(id);
-    console.log(pedido)
-    if (!pedido) {
-      throw new Error('Pedido no encontrado');
-    } else {
-      dueño = pedido.vendedor.toHexString()
-      if (dueño !== userId) {
-        throw new Error('Usted no es el dueño de este pedido');
-      }
-    }
-    // Encuentra el pedido por ID y marca isDeleted como true
-    const pedidoEliminado = await Pedido.findByIdAndUpdate(
-      id, // ID del pedido
-      { isDeleted: true }, // Campos a actualizar
-      { new: true } // Devuelve el documento actualizado
-    );
+
+  // Encuentra el pedido por ID y marca isDeleted como true
+  const pedidoEliminado = await Pedido.findByIdAndUpdate(
+    id, // ID del pedido
+    { isDeleted: true }, // Campos a actualizar
+    { new: true } // Devuelve el documento actualizado
+  );
 
 
-    return pedidoEliminado; // Devuelve el pedido marcado como eliminado
-  
+  return pedidoEliminado; // Devuelve el pedido marcado como eliminado
+
 }
 
 module.exports = {

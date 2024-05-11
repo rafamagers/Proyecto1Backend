@@ -21,25 +21,25 @@ async function createUsuarioMongo(datos) {
     }
 }
 async function updateUsuarioMongo(id, cambios) {
-   
-        const resultado = await Usuario.findByIdAndUpdate(id, cambios);
-        return resultado
+
+    const resultado = await Usuario.findByIdAndUpdate(id, cambios);
+    return resultado
 
 }
 
 
 async function softDeleteUsuarioMongo(id, userId) {
-  
-        // Encuentra el usuario por ID y marca isDeleted como true
-        const usuarioEliminado = await Usuario.findByIdAndUpdate(
-            id, // ID del usuario
-            { isDeleted: true }, // Campos a actualizar
-            { new: true } // Devuelve el documento actualizado
-        );
+
+    // Encuentra el usuario por ID y marca isDeleted como true
+    const usuarioEliminado = await Usuario.findByIdAndUpdate(
+        id, // ID del usuario
+        { isDeleted: true }, // Campos a actualizar
+        { new: true } // Devuelve el documento actualizado
+    );
 
 
-        return usuarioEliminado; // Devuelve el usuario marcado como eliminado
-   
+    return usuarioEliminado; // Devuelve el usuario marcado como eliminado
+
 }
 
 module.exports = {
