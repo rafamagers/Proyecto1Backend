@@ -1,5 +1,6 @@
 const { throwCustomError } = require("../utils/functions");
 const { createUsuarioMongo, getUsuarioMongo, getUsuariosMongo, updateUsuarioMongo, softDeleteUsuarioMongo } = require("./usuario.actions");
+const Usuario = require("./usuario.model")
 
 
 async function readUsuario(id, userId) {
@@ -22,14 +23,13 @@ async function createUsuario(datos) {
 
 async function updateUsuario(datos, userId) {
   const { _id, ...cambios } = datos;
-  const usuario = await Usuario.findById(id);
+  const usuario = await Usuario.findById(_id);
   if (!usuario) {
     throw new Error(JSON.stringify({code: 404, msg:"Usuario no existe"}));
   }
-  if (id !== userId) {
+  if (_id !== userId) {
     throw new Error(JSON.stringify({code: 403, msg:'Esta no es su cuenta, no puede modificarla'}));
   }
-
   // hacer llamado a base de datos con el filtro de tipo
   const UsuarioCreado = await updateUsuarioMongo(_id, cambios);
 

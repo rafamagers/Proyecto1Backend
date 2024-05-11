@@ -42,7 +42,14 @@ schemaUsuario.pre('save', async function (next) {
   }
   next();
 });
-
+schemaUsuario.pre('findOneAndUpdate', async function (next) {
+  if (this.getUpdate().password) {
+    const salt = await bcrypt.genSalt(10); // Genera sal para el hash
+    const hashedPassword = await bcrypt.hash(this.getUpdate().password, salt); // Aplica el hash a la nueva contraseña
+    this.getUpdate().password = hashedPassword; // Actualiza la contraseña hasheada en los datos de actualización
+  }
+  next();
+});
 // Método para verificar la contraseña
 schemaUsuario.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password); // Compara hash
