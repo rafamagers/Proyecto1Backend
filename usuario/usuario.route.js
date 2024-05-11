@@ -10,9 +10,10 @@ async function GetUsuariosId(req, res) {
         const resultadosBusqueda = await readUsuario(req.params.id, req.userId);
         res.status(200).json({
             resultadosBusqueda
-        })
+        });
     } catch (e) {
-        res.status(500).json({ msg: e.message })
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 async function PostUsuario(req, res) {
@@ -25,8 +26,8 @@ async function PostUsuario(req, res) {
             usuario: usuarioCreado,
         });
     } catch (error) {
-        console.error('Error al crear el usuario:', error); // Manejo de errores
-        res.status(500).json({ error: error.message }); // Respuesta al cliente
+        const errorObj = JSON.parse(error.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 
@@ -37,9 +38,10 @@ async function PatchUsuarios(req, res) {
 
         res.status(200).json({
             mensaje: "Usuario modificado. 👍"
-        })
+        });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 
@@ -50,9 +52,10 @@ async function DeleteUsuarios(req, res) {
         await deleteUsuario(req.params.id, req.userId);
         res.status(200).json({
             mensaje: "Usuario eliminado. 👍"
-        })
+        });
     } catch (e) {
-        res.status(500).json({ error: e.message }); // Devuelve respuesta al cliente
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 

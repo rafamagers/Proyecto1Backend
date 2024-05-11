@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-
+require('dotenv').config();
 // Clave secreta y tiempo de expiración para el token JWT
-const SECRET_KEY = 'mi_secreto_super_seguro'; // Cambia a algo seguro
+const SECRET_KEY = process.env.SECRET_KEY; // Cambia a algo seguro
 const EXPIRATION_TIME = '5h'; // Token expira en 1 hora
 
 // Función para crear el token JWT

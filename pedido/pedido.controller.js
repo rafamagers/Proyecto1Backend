@@ -1,5 +1,5 @@
 const { throwCustomError } = require("../utils/functions");
-const { getLibroMongo, getLibrosMongo } = require("../libro/libro.actions");
+const { getLibroMongo, updateLibroMongo } = require("../libro/libro.actions");
 const Libro = require("../libro/libro.model");
 const { createPedidoMongo, getPedidoMongo, getPedidosMongo, updatePedidoMongo, softDeletePedidoMongo } = require("./pedido.actions");
 const Pedido = require("./pedido.model")
@@ -21,22 +21,18 @@ async function readPedidoConFiltros(query, userId) {
   }
 
   var resultadosBusqueda;
-  console.log(filtros)
-  console.log(todo)
   if (todo === "true") {
     resultadosBusqueda = await getPedidosMongo(filtros);
 
   } else {
-    console.log("here")
+
     resultadosBusqueda = await getPedidosMongo({ ...filtros, isDeleted: false });
   }
-  console.log("hereee")
 
-  console.log(resultadosBusqueda)
   const resultadosFiltrados = await Promise.all(resultadosBusqueda.resultados.map(async (pedido) => {
     if (pedido.libros && pedido.libros.length > 0) {
       // Obtener el libro de la base de datos
-      const libro = await getLibroMongo(pedido.libros[0]);
+      const libro = await getLibroMongo(pedido.libros[0], false);
 
       // Verificar si el vendedor del libro es igual a userID
       if (libro.vendedor.toHexString() === userId || pedido.idComprador.toHexString() === userId) {
@@ -65,7 +61,7 @@ async function createPedido(datos) {
 
   for (const idlibro of datos.libros) {
     // Verifica cada libro para asegurar que existe
-    const libro = await getLibroMongo(idlibro);
+    const libro = await getLibroMongo(idlibro, true);
 
     if (!libro) {
       throw new Error('Libro no encontrado: ' + idlibro); // Error si el libro no existe
@@ -73,15 +69,11 @@ async function createPedido(datos) {
   }
 
   const primerlibro = await Libro.findById(datos.libros[0])
-  console.log(primerlibro.vendedor)
   const dueñolibros = primerlibro.vendedor.toHexString()
   for (const lib of datos.libros) {
     const libro = await Libro.findById(lib)
-    console.log(dueñolibros)
-    console.log("vende:")
-    console.log(libro.vendedor)
     if (dueñolibros !== libro.vendedor.toHexString()) {
-      throw new Error('Libros de vendedores diferentes'); // Error si el libro no existe
+      throw new Error(JSON.stringify({ code: 403, msg: 'Libros de vendedores diferentes' })); // Error si el libro no existe
     }
   }
   // Si el vendedor es válido, crea el pedido
@@ -93,34 +85,53 @@ async function createPedido(datos) {
 
 async function updatePedido(datos, userId) {
   const { _id, ...cambios } = datos;
-  console.log(cambios)
-  const pedido = await Pedido.findById(_id)
+  const pedido = await getPedidoMongo(_id);
   if (!pedido) {
-    throw new Error("Pedido no existe")
+    throw new Error(JSON.stringify({ code: 404, msg: "Pedido no existe" }));
+  }
+  if (pedido.estado !== "en progreso") {
+    throw new Error(JSON.stringify({ code: 403, msg: "No puede modificar un pedido que no esté en progreso" }));
+
   }
   //Caso para cancelar un pedido
   if (cambios.estado === "cancelado") {
-    const dueño = pedido.idComprador.toHexString()
+    const dueño = pedido.idComprador.toHexString();
     if (dueño !== userId) {
+      const primerlibro = await Libro.findById(pedido.libros[0]);
+      const dueñolibros = primerlibro.vendedor.toHexString();
 
-      throw new Error('Usted no es el comprador de este pedido, no puede actualizar');
+      if (dueñolibros !== userId) {
+
+        throw new Error(JSON.stringify({ code: 403, msg: 'Usted no está involucrado en este pedido, no puede cancelarlo' }));
+      }
+      else {
+        const resultado = await updatePedidoMongo(_id, cambios);
+        return resultado
+
+      }
     } else {
       const resultado = await updatePedidoMongo(_id, cambios);
       return resultado
 
     }
   } else {
+    if (cambios.estado === "completado") {
+      const primerlibro = await Libro.findById(pedido.libros[0]);
+      const dueñolibros = primerlibro.vendedor.toHexString();
+      if (dueñolibros !== userId) {
 
-    const primerlibro = await Libro.findById(pedido.libros[0])
-    const dueñolibros = primerlibro.vendedor.toHexString()
-    console.log(dueñolibros)
-    console.log(userId)
-    if (dueñolibros !== userId) {
-      throw new Error('Usted no es el dueño de los libros por lo que no puede completar el pedido');
-    }
-    else {
-      const resultado = await updatePedidoMongo(_id, cambios);
-      return resultado
+        throw new Error(JSON.stringify({ code: 403, msg: 'Usted no es el dueño de los libros por lo que no puede completar el pedido' }));
+      }
+      else {
+        const resultado = await updatePedidoMongo(_id, cambios);
+        pedido.libros.forEach(async libro => {
+           await updateLibroMongo(libro._id, {isDeleted: true});
+        });
+        return resultado
+
+      }
+    } else {
+      throw new Error(JSON.stringify({ code: 400, msg: 'Usted ingresó una instrucción inaceptable' }));
 
     }
 
@@ -129,13 +140,12 @@ async function updatePedido(datos, userId) {
 }
 async function deletePedido(id, userId) {
   const pedido = await Pedido.findById(id);
-  console.log(pedido)
   if (!pedido) {
     throw new Error('Pedido no encontrado');
   } else {
-    dueño = pedido.vendedor.toHexString()
+    dueño = pedido.vendedor.toHexString();
     if (dueño !== userId) {
-      throw new Error('Usted no es el dueño de este pedido, no puede eliminarlo');
+      throw new Error(JSON.stringify({ code: 403, msg: 'Usted no es el dueño de este pedido, no puede eliminarlo' }));
     }
   }
   // Usa `await` para asegurarte de que el error se propague adecuadamente

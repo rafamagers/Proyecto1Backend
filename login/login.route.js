@@ -28,7 +28,6 @@ router.post('/', async (req, res) => {
 
     res.status(200).json({ token }); // Devolver el token en la respuesta
   } catch (error) {
-    console.error('Error en el endpoint de autenticación:', error);
     res.status(500).json({ error: 'Error interno del servidor' }); // Manejo de errores
   }
 });

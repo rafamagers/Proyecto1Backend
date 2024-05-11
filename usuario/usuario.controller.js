@@ -3,10 +3,9 @@ const { createUsuarioMongo, getUsuarioMongo, getUsuariosMongo, updateUsuarioMong
 
 
 async function readUsuario(id, userId) {
-  console.log(id)
-  console.log(userId)
+
   if (id !== userId) {
-    throw new Error('Usted no es el dueño de esta cuenta, no la puede ver');
+    throw new Error(JSON.stringify({code: 403, msg:'Usted no es el dueño de esta cuenta, no la puede ver'}));
   }
   const resultadosBusqueda = await getUsuarioMongo(id);
   return resultadosBusqueda;
@@ -23,13 +22,12 @@ async function createUsuario(datos) {
 
 async function updateUsuario(datos, userId) {
   const { _id, ...cambios } = datos;
-  console.log(cambios)
-  const usuario = await Usuario.findById(id)
+  const usuario = await Usuario.findById(id);
   if (!usuario) {
-    throw new Error("Usuario no existe")
+    throw new Error(JSON.stringify({code: 404, msg:"Usuario no existe"}));
   }
   if (id !== userId) {
-    throw new Error('Esta no es su cuenta, no puede modificarla');
+    throw new Error(JSON.stringify({code: 403, msg:'Esta no es su cuenta, no puede modificarla'}));
   }
 
   // hacer llamado a base de datos con el filtro de tipo
@@ -39,14 +37,14 @@ async function updateUsuario(datos, userId) {
 }
 async function deleteUsuario(id, userId) {
 
-  const usuario = await Usuario.findById(id)
-  console.log(usuario)
+  const usuario = await getUsuarioMongo(id);
+
   if (!usuario) {
-    throw new Error('Usuario no encontrado');
+    throw new Error(JSON.stringify({code: 404, msg:'Usuario no encontrado'}));
   } else {
 
     if (id !== userId) {
-      throw new Error('Usted no es el dueño de esta cuenta, no la puede eliminar');
+      throw new Error(JSON.stringify({code: 403, msg:'Usted no es el dueño de esta cuenta, no la puede eliminar'}));
     }
   }
 

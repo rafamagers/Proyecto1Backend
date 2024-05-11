@@ -3,7 +3,6 @@ const router = express.Router();
 const { readPedidoConFiltros, readPedido, createPedido, updatePedido, deletePedido } = require("./pedido.controller");
 const { respondWithError } = require('../utils/functions');
 const { verificarTokenJWT } = require('../login/login.actions'); // Función para crear tokens
-const { getLibroMongo } = require('../libro/libro.actions'); // Función para crear tokens
 
 async function GetPedidos(req, res) {
   try {
@@ -11,10 +10,11 @@ async function GetPedidos(req, res) {
     resultadosBusqueda = await readPedidoConFiltros(req.query, req.userId);
     res.status(200).json({
       resultadosBusqueda
-    })
+    });
 
   } catch (e) {
-    res.status(500).json({ msg: e.message })
+    const errorObj = JSON.parse(e.message);
+    res.status(errorObj.code).json({ error: errorObj.msg });
   }
 }
 async function GetPedidosId(req, res) {
@@ -22,9 +22,10 @@ async function GetPedidosId(req, res) {
     const resultadosBusqueda = await readPedido(req.params.id);
     res.status(200).json({
       resultadosBusqueda
-    })
+    });
   } catch (e) {
-    res.status(500).json({ msg: "Pedido no encontrado" })
+    const errorObj = JSON.parse(e.message);
+    res.status(errorObj.code).json({ error: errorObj.msg });
   }
 }
 async function PostPedido(req, res) {
@@ -41,7 +42,8 @@ async function PostPedido(req, res) {
       pedido: pedidoCreado,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message }); // Respuesta al cliente
+    const errorObj = JSON.parse(e.message);
+    res.status(errorObj.code).json({ error: errorObj.msg });
   }
 }
 
@@ -52,9 +54,10 @@ async function PatchPedidos(req, res) {
 
     res.status(200).json({
       mensaje: "Pedido modificado. 👍"
-    })
+    });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    const errorObj = JSON.parse(e.message);
+    res.status(errorObj.code).json({ error: errorObj.msg });
   }
 }
 
@@ -65,9 +68,10 @@ async function DeletePedidos(req, res) {
     await deletePedido(req.params.id, req.userId);
     res.status(200).json({
       mensaje: "Pedido eliminado. 👍"
-    })
+    });
   } catch (e) {
-    res.status(500).json({ error: e.message }); // Devuelve respuesta al cliente
+    const errorObj = JSON.parse(e.message);
+    res.status(errorObj.code).json({ error: errorObj.msg });
   }
 }
 

@@ -10,16 +10,16 @@ async function getLibrosMongo(filtros) {
     cantidadLibros: cantidadLibros
   };
 }
-async function getLibroMongo(id) {
+async function getLibroMongo(id, activate) {
 
   const libro = await Libro.findById(id);
   if (!libro) {
-    throw new Error("Libro no existe");
+    throw new Error(JSON.stringify({code: 400, msg:"Libro no existe"}));
   } else {
-    if (libro.isDeleted) {
-      throw new Error("Libro no existe");
+    if (libro.isDeleted && activate) {
+      throw new Error(JSON.stringify({code: 400, msg:"Libro no existe"}));
     }
-    return libro
+    return libro;
 
   }
 
@@ -39,7 +39,7 @@ async function createLibroMongo(datos) {
 async function updateLibroMongo(id, cambios) {
 
   const resultado = await Libro.findByIdAndUpdate(id, cambios);
-  return resultado
+  return resultado;
 
 }
 

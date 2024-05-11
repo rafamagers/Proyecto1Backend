@@ -6,24 +6,21 @@ async function readLibroConFiltros(query) {
     const { genero, fechaPublicacion, editorial, titulo, autor, todo, ...resto } = query;
 
     if (Object.keys(resto).length > 0) {
-        throw new Error("No puedes filtrar por eso");
+        throw new Error(JSON.stringify({code: 400, msg:"No puedes filtrar por eso"}));
     }
     const { todo: todito, ...filtros } = query;
     var resultadosBusqueda;
-    console.log(todo)
     if (todo === "true") {
         resultadosBusqueda = await getLibrosMongo(filtros);
 
     } else {
-        console.log("gere")
-        console.log(filtros)
         resultadosBusqueda = await getLibrosMongo({ ...filtros, isDeleted: false });
     }
 
     return resultadosBusqueda;
 }
 async function readLibro(id) {
-    const resultadosBusqueda = await getLibroMongo(id);
+    const resultadosBusqueda = await getLibroMongo(id, true);
     return resultadosBusqueda;
 }
 
@@ -37,13 +34,13 @@ async function createLibro(datos) {
 
 async function updateLibro(datos, userId) {
     const { _id, ...cambios } = datos;
-    const libro = await Libro.findById(_id)
+    const libro = await Libro.findById(_id);
     if (!libro) {
-        throw new Error('El libro no existe');
+        throw new Error(JSON.stringify({code: 404, msg:'El libro no existe'}));
     }
-    const dueño = libro.vendedor.toHexString()
+    const dueño = libro.vendedor.toHexString();
     if (dueño !== userId) {
-        throw new Error('Usted no es el dueño de este libro');
+        throw new Error(JSON.stringify({code: 403, msg:'Usted no es el dueño de este libro'}));
     } else {
         const LibroCreado = await updateLibroMongo(_id, cambios);
         return LibroCreado;
@@ -53,14 +50,13 @@ async function updateLibro(datos, userId) {
 }
 async function deleteLibro(id, userId) {
 
-    const libro = await Libro.findById(id)
-    console.log(libro)
+    const libro = await getLibroMongo(id, true);
     if (!libro) {
-        throw new Error('Libro no encontrado');
+        throw new Error(JSON.stringify({code: 404, msg:'Libro no encontrado'}));
     } else {
-        dueño = libro.vendedor.toHexString()
+        dueño = libro.vendedor.toHexString();
         if (dueño !== userId) {
-            throw new Error('Usted no es el dueño de este libro, no lo puede eliminar');
+            throw new Error(JSON.stringify({code: 403, msg:'Usted no es el dueño de este libro, no lo puede eliminar'}));
         }
     }
     // Usa `await` para asegurarte de que el error se propague adecuadamente

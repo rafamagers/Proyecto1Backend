@@ -11,38 +11,40 @@ async function GetLibros(req, res) {
 
         res.status(200).json({
             ...resultadosBusqueda
-        })
+        });
     } catch (e) {
-        res.status(500).json({ msg: e.message })
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 async function GetLibrosId(req, res) {
     try {
+       
         const resultadosBusqueda = await readLibro(req.params.id);
+     
         res.status(200).json({
             resultadosBusqueda
-        })
+        });
     } catch (e) {
-        res.status(500).json({ msg: "Libro no encontrado" })
+    
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 async function PostLibro(req, res) {
     try {
-        console.log('Inicio de PostLibro'); // Depuración
-        console.log('req.userId:', req.userId); // Depuración
         // Agrega el ID del usuario (vendedor) a los datos del libro
         const libroData = {
             ...req.body,
             vendedor: req.userId, // El ID del usuario autenticado
         };
-        console.log('libroData:', libroData); // Depuración
         // Llamada a la función para crear el libro con el ID del vendedor
         const libroCreado = await createLibro(libroData);
 
         res.status(200).json({ mensaje: 'Libro creado exitosamente. 👍', libro: libroCreado }); // Respuesta exitosa
     } catch (error) {
-        console.error('Error al crear el libro:', error);
-        res.status(500).json({ error: 'Error interno del servidor' }); // Manejo de errores
+        const errorObj = JSON.parse(error.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 
@@ -53,9 +55,10 @@ async function PatchLibros(req, res) {
 
         res.status(200).json({
             mensaje: "Libro actualizado. 👍"
-        })
+        });
     } catch (e) {
-        res.status(500).json({ error: e.message }); // Manejo de errores
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 
@@ -66,9 +69,10 @@ async function DeleteLibros(req, res) {
         await deleteLibro(req.params.id, req.userId);
         res.status(200).json({
             mensaje: "Libro eliminado. 👍"
-        })
+        });
     } catch (e) {
-        res.status(500).json({ error: e.message }); // Devuelve respuesta al cliente
+        const errorObj = JSON.parse(e.message);
+        res.status(errorObj.code).json({ error: errorObj.msg });
     }
 }
 

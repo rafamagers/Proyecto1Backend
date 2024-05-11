@@ -4,7 +4,6 @@ const Pedido = require("./pedido.model")
 async function getPedidosMongo(filtros) {
   const cantidadPedidos = await Pedido.countDocuments(filtros);
   const PedidosFiltrados = await Pedido.find(filtros);
-  console.log(PedidosFiltrados)
   return {
     resultados: PedidosFiltrados,
     // paginaMax: cantidadPedidos / 20,
@@ -15,9 +14,9 @@ async function getPedidosMongo(filtros) {
 async function getPedidoMongo(id) {
   const pedido = await Pedido.findById(id);
   if (pedido.isDeleted) {
-    throw error;
+    throw new Error(JSON.stringify({code: 404, msg:"Pedido no existe"}));
   } else {
-    return pedido
+    return pedido;
 
   }
 }

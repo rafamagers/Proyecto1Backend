@@ -5,9 +5,9 @@ const Usuario = require("./usuario.model")
 async function getUsuarioMongo(id) {
     const usuario = await Usuario.findById(id);
     if (usuario.isDeleted) {
-        throw error;
+        throw new Error(JSON.stringify({code: 404, msg:"Usuario no existe"}));
     } else {
-        return usuario
+        return usuario;
 
     }
 }
@@ -16,14 +16,13 @@ async function createUsuarioMongo(datos) {
         const usuarioCreado = await Usuario.create(datos); // Crea el usuario con los datos proporcionados
         return usuarioCreado; // Devuelve el usuario creado
     } catch (error) {
-        console.error('Error al crear el usuario:', error); // Registro de error en consola
-        throw error; // Vuelve a lanzar el error para que el llamador lo maneje
+        throw new Error(JSON.stringify({code: 500, msg:"Error creando en la base de datos"}));
     }
 }
 async function updateUsuarioMongo(id, cambios) {
 
     const resultado = await Usuario.findByIdAndUpdate(id, cambios);
-    return resultado
+    return resultado;
 
 }
 
