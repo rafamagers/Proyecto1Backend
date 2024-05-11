@@ -6,8 +6,6 @@ async function getPedidosMongo(filtros) {
   const PedidosFiltrados = await Pedido.find(filtros);
   return {
     resultados: PedidosFiltrados,
-    // paginaMax: cantidadPedidos / 20,
-    // paginaActual: 1,
     cantidadPedidos: cantidadPedidos
   };
 }
